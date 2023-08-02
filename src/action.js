@@ -26,6 +26,57 @@ export const addPost = ({ title, description, url }) => {
   };
 };
 
+export const filterPost = (label, index, searchQuery = "") => {
+  return {
+    type: "filterPost",
+    payload: label,
+    index,
+    searchQuery,
+  };
+};
+
+export const getSelectedPost = (id) => {
+  return {
+    type: "getSelectedPost",
+    payload: { id },
+  };
+};
+
+export const getAllComments = (comments) => {
+  return {
+    type: "getAllComments",
+    payload: comments,
+  };
+};
+
+export const addComment = (comment, id) => {
+  return {
+    type: "addComment",
+    payload: { comment, id },
+  };
+};
+
+export const deleteComment = (id, date) => {
+  return {
+    type: "deleteComment",
+    payload: { id, date },
+  };
+};
+
+export const openToEdit = (id, date) => {
+  return {
+    type: "openToEdit",
+    payload: { id, date },
+  };
+};
+
+export const editComment = (comment, id, date) => {
+  return {
+    type: "editComment",
+    payload: { comment, id, date },
+  };
+};
+
 export const loginUser = (username, password, index) => {
   return {
     type: "loginUser",
@@ -35,9 +86,9 @@ export const loginUser = (username, password, index) => {
 };
 
 export const loginWithGoogle = (
-  googleUsername,
-  googleFirstName,
-  googleLastName
+  googleUsername = "",
+  googleFirstName = "",
+  googleLastName = ""
 ) => {
   return {
     type: "loginWithGoogle",
@@ -52,22 +103,21 @@ export const addUser = ({ username, password, firstName, lastName }) => {
   };
 };
 
-export const filterPost = (label) => {
-  return {
-    type: "filterPost",
-    payload: label,
-  };
-};
-
 export const userLogout = () => {
   return {
     type: "userLogout",
   };
 };
 
-export const setMsg = (msg) => {
+export const setMsg = (msg, signal) => {
   return {
     type: "setMsg",
-    payload: { msg },
+    payload: { msg, signal },
+  };
+};
+
+export const closeModal = () => {
+  return {
+    type: "closeModal",
   };
 };

@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { changeDownvote, changeUpvote } from "../action";
+import {
+  changeDownvote,
+  changeUpvote,
+  addComment,
+  getAllComments,
+  getSelectedPost,
+} from "../action";
 import { useNavigate, useParams } from "react-router-dom";
 import { routepath } from "../routepaths";
+import PostComment from "../components/PostComment/PostComment";
+import Comment from "../components/PostComment/Comment";
 import {
   Typography,
   Container,
@@ -13,60 +21,88 @@ import {
 } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import { ArrowDownward } from "@mui/icons-material";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
+import { IconButton } from "@mui/material";
 import ShareIcon from "@mui/icons-material/Share";
+import CommentIcon from "@mui/icons-material/Comment";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ThumbUpOffAltSharpIcon from "@mui/icons-material/ThumbUpOffAltSharp";
+import ThumbDownAltSharpIcon from "@mui/icons-material/ThumbDownAltSharp";
+import Tooltip from "@mui/material/Tooltip";
 
-const FORM_CONTAINER_STYLE = {
-  maxWidth: "95%",
-  width: "90%",
-  aspectRatio: "1/1.5",
+export const FORM_CONTAINER_STYLE = {
+  maxWidth: "99%",
+  width: "95%",
+  aspectRatio: "7/1",
   mt: "3vh",
-  padding: "1em",
+  // border: "1px solid black",
 };
 
 const SinglePost = () => {
-  const posts = useSelector((state) => state.posts);
-  const params = useParams();
+  const selectedPost = useSelector((state) => state.selectedPost);
+  // console.log(selectedPost);
+  // const posts = useSelector((state) => state.posts);
+  const comments = useSelector((state) => state.comments);
+  const [comment, setComment] = useState("");
+
+  let params = useParams();
+
+  let postId = params.id;
+  console.log(postId);
+
+  useEffect(() => {
+    dispatch(getSelectedPost(parseInt(postId)));
+    // dispatch(getAllComments(comments));
+  }, []);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
-  const [postData, setPostData] = useState({});
-  const [comment, setComment] = useState("");
-
-  useEffect(() => {
-    let id = params.id;
-    let selectedId = Number(id.substring(1));
-    console.log(typeof selectedId, selectedId);
-    const index = posts.findIndex((post) => post.id == selectedId);
-    console.log(index);
-    console.log(posts[index]);
-    setPostData((obj) => posts[index]);
-  }, [params.id]);
-
-  const { title, description, url, upvote, downvote, voteStatus, id } =
-    postData;
-  const voted = voteStatus;
-  const BTN_STYLE = voted ? "filled" : "outlined";
+  const {
+    title,
+    description,
+    url,
+    upvote,
+    downvote,
+    upvoteStatus,
+    downvoteStatus,
+    id,
+  } = selectedPost;
+  const allComments = comments[id] || [];
+  // console.log(allComments);
+  // console.log(title, upvote);
+  const upvoted = upvoteStatus;
+  const downvoted = downvoteStatus;
+  const BTN_STYLE_upvote = upvoted ? "filled" : "outlined";
+  const BTN_STYLE_downvote = downvoted ? "filled" : "outlined";
+  const LOGIN_PATH = routepath.login;
 
   const handleVote = (name) => {
     if (!isLoggedIn) {
       navigate(LOGIN_PATH);
       return;
     }
-    console.log(name);
+    // console.log(name);
     if (name == "Upvote") {
       dispatch(changeUpvote({ id, upvote }));
-      return;
+    } else {
+      dispatch(changeDownvote({ id, downvote }));
     }
-    dispatch(changeDownvote({ id, downvote }));
   };
 
-  if (!title) return <div>No data found</div>;
+  const clearComment = () => {
+    if (comment.length > 0) setComment("");
+  };
+
+  const handleComment = () => {
+    console.log("in the handle comment function line no 68");
+    if (comment.length == 0) return;
+    dispatch(addComment(comment, id));
+    setComment("");
+  };
   return (
-    <Container maxWidth="sm" sx={{ mt: "10vh", textAlign: "center" }}>
+    <Container maxWidth="lg" sx={{ mt: "10vh", textAlign: "center" }}>
       <Chip
         icon={<ArrowLeftIcon />}
         label="Home"
@@ -74,7 +110,7 @@ const SinglePost = () => {
         variant="outlined"
         onClick={() => navigate(routepath.home)}
       />
-      <Typography variant="h5" sx={{ color: "#AA4A44" }}>
+      <Typography variant="h5" sx={{ color: "#AA4A44", textWrap: "balance" }}>
         {title}
       </Typography>
       <Grid
@@ -94,21 +130,26 @@ const SinglePost = () => {
           </Typography>
           <Stack direction="row" spacing={2} sx={{ ml: "2vw", mt: "5vh" }}>
             <Chip
-              icon={<ArrowUpwardIcon />}
-              label={`Upvote ${upvote}`}
+              icon={<ThumbUpOffAltSharpIcon />}
+              label={`${upvote}`}
               color="success"
-              variant={BTN_STYLE}
+              variant={BTN_STYLE_upvote}
+              sx={{ padding: "0.5em" }}
               onClick={() => handleVote("Upvote")}
+              key={"upvote"}
             />
             <Chip
-              icon={<ArrowDownward />}
-              label={`Downvote ${downvote}`}
+              icon={<ThumbDownAltSharpIcon />}
+              label={`${downvote}`}
               color="error"
-              variant={BTN_STYLE}
+              variant={BTN_STYLE_downvote}
+              sx={{ padding: "0.5em" }}
               onClick={() => handleVote("Downvote")}
+              key={"downvote"}
             />
-            <Chip icon={<ShareIcon />} label="Share" color="info" />
+            {/* <Chip icon={<ShareIcon />} label="Share" color="info" /> */}
           </Stack>
+
           <FormControl sx={FORM_CONTAINER_STYLE}>
             <TextField
               type="text"
@@ -116,14 +157,46 @@ const SinglePost = () => {
               label="comment"
               value={comment}
               color="success"
-              sx={{ mt: "2vh" }}
-              onClick={(event) => setComment(event.target.value)}
+              onChange={(event) => setComment(event.target.value)}
             />
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ ml: "2vw", mt: "2vh" }}
+              alignItems={"center"}
+              justifyContent={"flex-end"}
+            >
+              <Tooltip title="Add a Comment" placement="bottom">
+                <IconButton
+                  aria-label="comment"
+                  color="info"
+                  onClick={handleComment}
+                >
+                  <CommentIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="cancel" placement="bottom">
+                <IconButton
+                  aria-label="delete-comment"
+                  color="error"
+                  sx={{ mt: "2vh" }}
+                  onClick={clearComment}
+                >
+                  <DeleteOutlineIcon />
+                </IconButton>
+              </Tooltip>
 
-            <Button variant="contained" color="success" sx={{ mt: "2vh" }}>
-              comment
-            </Button>
+              {/* <Chip
+                icon={<DeleteOutlineIcon />}
+                variant="outlined"
+                color="error"
+                label="Delete"
+                sx={{ mt: "2vh" }}
+                onClick={clearComment}
+              /> */}
+            </Stack>
           </FormControl>
+          <PostComment commentList={allComments} />
         </Grid>
       </Grid>
     </Container>

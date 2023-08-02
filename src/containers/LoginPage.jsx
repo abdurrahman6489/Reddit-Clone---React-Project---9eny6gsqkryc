@@ -3,9 +3,9 @@ import { auth, provider } from "../firebase";
 import { signInWithPopup } from "@firebase/auth";
 import { useSelector, useDispatch } from "react-redux";
 import { loginUser, setMsg, loginWithGoogle } from "../action";
-import { useNavigate } from "react-router-dom";
+import { signalProps } from "../utils";
 import { routepath } from "../routepaths";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Button,
   Container,
@@ -21,6 +21,7 @@ import Chip from "@mui/material/Chip";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 
 const SUCCESS_NAVIGATE_PAGE = routepath.home;
+const { success } = signalProps;
 
 const FORM_CONTAINER_STYLE = {
   maxWidth: "95%",
@@ -45,6 +46,7 @@ const BTN_STYLE = {
 
 const LoginPage = () => {
   const navigate = useNavigate();
+
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
   // console.log(users);
@@ -63,7 +65,12 @@ const LoginPage = () => {
         currentUser.username == username && currentUser.password == password
     );
     if (userIndex > -1) {
-      dispatch(setMsg("Login successful"));
+      dispatch(
+        setMsg(
+          `Congratulatios ${username}, you are successfully loggedin`,
+          success
+        )
+      );
       dispatch(loginUser(username, password, userIndex));
       navigate(SUCCESS_NAVIGATE_PAGE);
     } else setError("User doesn't exist");
@@ -79,6 +86,12 @@ const LoginPage = () => {
         const firstName = fullName[0];
         const lastName = fullName[1];
         dispatch(loginWithGoogle(userName, firstName, lastName));
+        dispatch(
+          setMsg(
+            `Congratulatios ${userName}, you are successfully loggedin`,
+            success
+          )
+        );
         navigate(SUCCESS_NAVIGATE_PAGE);
       })
       .catch((error) => {
@@ -149,12 +162,10 @@ const LoginPage = () => {
             </Button>
             {error && <p style={{ color: "red" }}>{error}</p>}
           </FormControl>
-          <Typography variant="body2">
-            Not an existing user yet?
-            <Link to={routepath.signup}>
-              <p style={{ color: "blue" }}>Signup</p>
-            </Link>
-          </Typography>
+          <Typography variant="body2">Not an existing user yet?</Typography>
+          <Link to={routepath.signup}>
+            <p style={{ color: "blue" }}>Signup</p>
+          </Link>
         </Grid>
       </Grid>
     </Container>
@@ -162,3 +173,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+ 
